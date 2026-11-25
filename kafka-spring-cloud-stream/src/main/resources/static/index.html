@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Analytics temps réel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/smoothie/1.34.0/smoothie.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f7fa; margin: 2rem; }
+        h1 { color: #1f3a5f; }
+        .legend span { display: inline-block; margin-right: 1.5rem; font-weight: bold; }
+        .p1 { color: #1aa31a; } .p2 { color: #d11a1a; }
+        canvas { background: #000; border-radius: 6px; }
+    </style>
+</head>
+<body>
+<h1>Visites par page (fenêtre de 5 s) — Kafka Streams</h1>
+<div class="legend">
+    <span class="p1">■ P1 : <b id="P1">0</b></span>
+    <span class="p2">■ P2 : <b id="P2">0</b></span>
+</div>
+<canvas id="chart" width="900" height="400"></canvas>
+<script>
+    const pages = ["P1", "P2"];
+    const colors = {
+        P1: { strokeStyle: 'rgba(0, 255, 0, 1)', fillStyle: 'rgba(0, 255, 0, 0.2)' },
+        P2: { strokeStyle: 'rgba(255, 0, 0, 1)', fillStyle: 'rgba(255, 0, 0, 0.2)' }
+    };
+    const series = {};
+    const chart = new SmoothieChart({ tooltip: true, minValue: 0 });
+    chart.streamTo(document.getElementById("chart"), 500);
+    pages.forEach(p => {
+        series[p] = new TimeSeries();
+        chart.addTimeSeries(series[p], { ...colors[p], lineWidth: 2 });
+    });
+    const source = new EventSource("/analytics");
+    source.addEventListener("message", event => {
+        const data = JSON.parse(event.data);
+        pages.forEach(p => {
+            const v = data[p] || 0;
+            series[p].append(Date.now(), v);
+            document.getElementById(p).textContent = v;
+        });
+    });
+</script>
+</body>
+</html>
