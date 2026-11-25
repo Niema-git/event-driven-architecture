@@ -33,7 +33,7 @@ public class PageEventController {
     }
 
     // Producer : publie un PageEvent dans le topic demandé
-    // ex : http://localhost:8080/publish?name=P1&topic=R2
+    // ex : http://localhost:8090/publish?name=P1&topic=R2
     @GetMapping("/publish")
     public PageEvent publish(@RequestParam String name, @RequestParam String topic) {
         PageEvent event = new PageEvent(name, Math.random() > 0.5 ? "U1" : "U2",
